@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a Cab – TravelEase</title>
+  <meta name="description" content="Book your cab online with TravelEase. Choose from Mini, Sedan, SUV or Luxury cabs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #574fd6;
+      --accent: #ff6584;
+      --gold: #ffd166;
+      --success: #06d6a0;
+      --error: #ef476f;
+      --bg: #0f0e17;
+      --surface: #1a1927;
+      --surface2: #22213a;
+      --border: rgba(108,99,255,0.2);
+      --text: #fffffe;
+      --text-muted: #a7a5c2;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top:0; left:0; right:0; z-index:100;
+      display: flex; align-items:center; justify-content:space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(15,14,23,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      font-size:1.4rem; font-weight:800;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      text-decoration:none;
+    }
+    .nav-links { display:flex; gap:1.5rem; list-style:none; }
+    .nav-links a { color:var(--text-muted); text-decoration:none; font-weight:500; font-size:0.95rem; transition:color var(--transition); }
+    .nav-links a:hover, .nav-links a.active { color:var(--primary); }
+
+    /* ── Page layout ── */
+    .page-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 7rem 2rem 4rem;
+    }
+    .page-header { margin-bottom: 2.5rem; }
+    .page-header h1 { font-size: 2.2rem; font-weight: 800; }
+    .page-header p { color: var(--text-muted); margin-top: 0.5rem; }
+    .breadcrumb { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+    /* ── Two-column layout ── */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 2rem;
+      align-items: start;
+    }
+    @media (max-width: 800px) { .content-grid { grid-template-columns: 1fr; } }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+    .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block; font-size: 0.875rem; font-weight: 500;
+      color: var(--text-muted); margin-bottom: 0.5rem;
+    }
+    .form-group label span { color: var(--error); }
+    .form-control {
+      width: 100%; padding: 0.75rem 1rem;
+      background: var(--surface2);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+    .form-control option { background: var(--surface2); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* ── Cab type selector ── */
+    .cab-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .cab-option { display: none; }
+    .cab-label {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 1rem 0.75rem;
+      background: var(--surface2);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+    }
+    .cab-option:checked + .cab-label {
+      border-color: var(--primary);
+      background: rgba(108,99,255,0.1);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    }
+    .cab-label:hover { border-color: rgba(108,99,255,0.4); }
+    .cab-label-icon { font-size: 1.8rem; }
+    .cab-label-name { font-size: 0.85rem; font-weight: 600; margin-top: 0.4rem; }
+    .cab-label-rate { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* ── Submit button ── */
+    .btn-submit {
+      width: 100%; padding: 1rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: var(--radius);
+      cursor: pointer; margin-top: 0.5rem;
+      box-shadow: 0 4px 24px rgba(108,99,255,0.35);
+      transition: all var(--transition);
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,99,255,0.5); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ── Summary card ── */
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.9rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: var(--text-muted); }
+    .summary-value { font-weight: 600; }
+    .summary-total { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      z-index: 999;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    #toast.success { background: rgba(6,214,160,0.15); border: 1px solid var(--success); color: var(--success); }
+    #toast.error   { background: rgba(239,71,111,0.15); border: 1px solid var(--error);   color: var(--error);   }
+    @keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:none; } }
+
+    /* ── Bookings list ── */
+    .bookings-list { margin-top: 2rem; }
+    .booking-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem; border-radius: 12px;
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 0.75rem;
+      transition: all var(--transition);
+    }
+    .booking-item:hover { border-color: var(--primary); }
+    .booking-icon { font-size: 1.5rem; }
+    .booking-info { flex: 1; }
+    .booking-route { font-weight: 600; font-size: 0.95rem; }
+    .booking-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .booking-status {
+      padding: 0.25rem 0.75rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600;
+      background: rgba(6,214,160,0.15); color: var(--success);
+    }
+    .delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--error); font-size: 1.2rem; padding: 0.25rem;
+      transition: transform var(--transition);
+    }
+    .delete-btn:hover { transform: scale(1.2); }
+    .empty-state { text-align:center; color:var(--text-muted); padding:2rem; font-size:0.9rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">🚖 TravelEase</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="booking.html" class="active">Book a Cab</a></li>
+    <li><a href="passengers.html">Passengers</a></li>
+    <li><a href="fare-calculator.html">Fare Estimator</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="index.html">Home</a> › Book a Cab</div>
+    <h1>🚕 Book a Cab</h1>
+    <p>Fill in the details below to create a new booking.</p>
+  </div>
+
+  <div class="content-grid">
+    <!-- ── Booking Form ── -->
+    <div>
+      <div class="card">
+        <div class="card-title">📋 Booking Details</div>
+        <form id="booking-form">
+          <div class="form-group">
+            <label for="passenger-id">Passenger ID <span>*</span></label>
+            <input type="number" id="passenger-id" class="form-control" placeholder="e.g. 1" required min="1" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pickup">Pickup Location <span>*</span></label>
+              <input type="text" id="pickup" class="form-control" placeholder="e.g. Airport" required />
+            </div>
+            <div class="form-group">
+              <label for="drop">Drop Location <span>*</span></label>
+              <input type="text" id="drop" class="form-control" placeholder="e.g. City Centre" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="distance">Distance (km) <span>*</span></label>
+            <input type="number" id="distance" class="form-control" placeholder="e.g. 25.5" step="0.1" min="0.1" required />
+          </div>
+
+          <div class="form-group">
+            <label>Cab Type <span>*</span></label>
+            <div class="cab-selector">
+              <input type="radio" name="cabType" id="cab-mini" value="MINI" class="cab-option" />
+              <label for="cab-mini" class="cab-label">
+                <span class="cab-label-icon">🚗</span>
+                <span class="cab-label-name">Mini</span>
+                <span class="cab-label-rate">₹30 + ₹8/km</span>
+              </label>
+
+              <input type="radio" name="cabType" id="cab-sedan" value="SEDAN" class="cab-option" checked />
+              <label for="cab-sedan" class="cab-label">
+                <span class="cab-label-icon">🚙</span>
+                <span class="cab-label-name">Sedan</span>
+                <span class="cab-label-rate">₹50 + ₹12/km</span>
+              </label>
+
+              <input type="radio" name="cabType" id="cab-suv" value="SUV" class="cab-option" />
+              <label for="cab-suv" class="cab-label">
+                <span class="cab-label-icon">🚐</span>
+                <span class="cab-label-name">SUV</span>
+                <span class="cab-label-rate">₹80 + ₹18/km</span>
+              </label>
+
+              <input type="radio" name="cabType" id="cab-luxury" value="LUXURY" class="cab-option" />
+              <label for="cab-luxury" class="cab-label">
+                <span class="cab-label-icon">🏎️</span>
+                <span class="cab-label-name">Luxury</span>
+                <span class="cab-label-rate">₹150 + ₹25/km</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submit-booking">🚀 Confirm Booking</button>
+        </form>
+      </div>
+
+      <!-- ── Existing Bookings ── -->
+      <div class="card" style="margin-top:1.5rem;">
+        <div class="card-title" style="justify-content:space-between;">
+          <span>📦 Recent Bookings</span>
+          <button id="refresh-bookings" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:0.85rem;font-weight:600;">↻ Refresh</button>
+        </div>
+        <div class="bookings-list" id="bookings-list">
+          <div class="empty-state">Loading bookings…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Summary Sidebar ── -->
+    <div>
+      <div class="card" style="position:sticky;top:6rem;">
+        <div class="card-title">💰 Fare Preview</div>
+        <div id="summary-content">
+          <div class="summary-row">
+            <span class="summary-label">Cab Type</span>
+            <span class="summary-value" id="sum-cab">Sedan</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Distance</span>
+            <span class="summary-value" id="sum-dist">– km</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Base Fare</span>
+            <span class="summary-value" id="sum-base">₹50</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Per km Rate</span>
+            <span class="summary-value" id="sum-rate">₹12/km</span>
+          </div>
+          <div class="summary-row" style="margin-top:0.5rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1);">
+            <span class="summary-label" style="font-weight:600;">Estimated Total</span>
+            <span class="summary-total" id="sum-total">₹ –</span>
+          </div>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:1rem;">
+          * Actual fare calculated by the Fare Microservice (port 8082)
+        </p>
+        <a href="fare-calculator.html" style="display:block;margin-top:1rem;text-align:center;color:var(--primary);font-size:0.875rem;font-weight:600;text-decoration:none;">
+          Open Full Fare Calculator →
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<script>
+  const BOOKING_API = 'http://localhost:8081/api/bookings';
+
+  // Rate card (mirrors the fare service)
+  const RATES = {
+    MINI:   { base: 30, perKm: 8,  icon: '🚗' },
+    SEDAN:  { base: 50, perKm: 12, icon: '🚙' },
+    SUV:    { base: 80, perKm: 18, icon: '🚐' },
+    LUXURY: { base: 150,perKm: 25, icon: '🏎️' },
+  };
+
+  // ── Live preview update ──────────────────────────────────────────────
+  function updatePreview() {
+    const cab = document.querySelector('input[name="cabType"]:checked')?.value || 'SEDAN';
+    const dist = parseFloat(document.getElementById('distance').value) || 0;
+    const r = RATES[cab];
+    document.getElementById('sum-cab').textContent  = cab;
+    document.getElementById('sum-dist').textContent = dist ? dist + ' km' : '– km';
+    document.getElementById('sum-base').textContent = '₹' + r.base;
+    document.getElementById('sum-rate').textContent = '₹' + r.perKm + '/km';
+    document.getElementById('sum-total').textContent = dist
+      ? '₹' + (r.base + dist * r.perKm).toFixed(2) : '₹ –';
+  }
+
+  document.querySelectorAll('input[name="cabType"]').forEach(r => r.addEventListener('change', updatePreview));
+  document.getElementById('distance').addEventListener('input', updatePreview);
+  updatePreview();
+
+  // ── Toast helper ─────────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = type;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  // ── Load bookings ────────────────────────────────────────────────────
+  async function loadBookings() {
+    const list = document.getElementById('bookings-list');
+    try {
+      const res = await fetch(BOOKING_API);
+      const data = await res.json();
+      if (!data.length) {
+        list.innerHTML = '<div class="empty-state">No bookings yet. Create your first booking!</div>';
+        return;
+      }
+      list.innerHTML = data.map(b => `
+        <div class="booking-item" id="booking-${b.id}">
+          <span class="booking-icon">${RATES[b.cabType]?.icon || '🚕'}</span>
+          <div class="booking-info">
+            <div class="booking-route">${b.pickupLocation} → ${b.dropLocation}</div>
+            <div class="booking-meta">ID: ${b.id} · ${b.cabType} · ${b.distanceKm} km · Passenger #${b.passengerId}</div>
+          </div>
+          <span class="booking-status">${b.status}</span>
+          <button class="delete-btn" onclick="deleteBooking(${b.id})" title="Cancel booking">🗑️</button>
+        </div>
+      `).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="empty-state">⚠️ Could not connect to Booking Service (port 8081). Make sure it is running.</div>';
+    }
+  }
+
+  // ── Delete booking ───────────────────────────────────────────────────
+  async function deleteBooking(id) {
+    try {
+      const res = await fetch(`${BOOKING_API}/${id}`, { method: 'DELETE' });
+      if (res.status === 204) {
+        showToast('Booking #' + id + ' cancelled.', 'success');
+        loadBookings();
+      } else {
+        showToast('Failed to cancel booking.', 'error');
+      }
+    } catch (e) {
+      showToast('Could not reach Booking Service.', 'error');
+    }
+  }
+
+  // ── Form submit ──────────────────────────────────────────────────────
+  document.getElementById('booking-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-booking');
+    btn.disabled = true;
+    btn.textContent = '⏳ Booking…';
+
+    const payload = {
+      passengerId: parseInt(document.getElementById('passenger-id').value),
+      pickupLocation: document.getElementById('pickup').value,
+      dropLocation: document.getElementById('drop').value,
+      cabType: document.querySelector('input[name="cabType"]:checked').value,
+      distanceKm: parseFloat(document.getElementById('distance').value),
+    };
+
+    try {
+      const res = await fetch(BOOKING_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 201) {
+        showToast('✅ Booking confirmed!', 'success');
+        e.target.reset();
+        document.getElementById('cab-sedan').checked = true;
+        updatePreview();
+        loadBookings();
+      } else {
+        const err = await res.text();
+        showToast('❌ Error: ' + err, 'error');
+      }
+    } catch (err) {
+      showToast('⚠️ Cannot reach Booking Service. Is it running on port 8081?', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🚀 Confirm Booking';
+    }
+  });
+
+  document.getElementById('refresh-bookings').addEventListener('click', loadBookings);
+  loadBookings();
+</script>
+</body>
+</html>

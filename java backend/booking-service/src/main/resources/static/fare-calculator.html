@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fare Estimator – TravelEase</title>
+  <meta name="description" content="Estimate your cab fare before booking. Transparent pricing for all cab types." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #574fd6;
+      --accent: #ff6584;
+      --gold: #ffd166;
+      --success: #06d6a0;
+      --error: #ef476f;
+      --bg: #0f0e17;
+      --surface: #1a1927;
+      --surface2: #22213a;
+      --border: rgba(108,99,255,0.2);
+      --text: #fffffe;
+      --text-muted: #a7a5c2;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 2.5rem;
+      background:rgba(15,14,23,0.85); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-brand { font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-decoration:none; }
+    .nav-links { display:flex; gap:1.5rem; list-style:none; }
+    .nav-links a { color:var(--text-muted); text-decoration:none; font-weight:500; font-size:0.95rem; transition:color var(--transition); }
+    .nav-links a:hover, .nav-links a.active { color:var(--primary); }
+
+    .page-wrapper { max-width:960px; margin:0 auto; padding:7rem 2rem 4rem; }
+    .page-header { text-align:center; margin-bottom:3rem; }
+    .page-header h1 { font-size:2.5rem; font-weight:800; }
+    .page-header h1 span { background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .page-header p { color:var(--text-muted); margin-top:0.75rem; font-size:1.05rem; }
+
+    /* Calculator card */
+    .calc-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:2.5rem; margin-bottom:2rem;
+    }
+
+    /* Distance input */
+    .distance-group { margin-bottom:2rem; }
+    .distance-group label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-muted); margin-bottom:0.75rem; }
+    .distance-input-wrap { display:flex; align-items:center; gap:1rem; }
+    .distance-input {
+      flex:1; padding:1rem 1.25rem; font-size:1.2rem; font-weight:700;
+      background:var(--surface2); border:2px solid rgba(255,255,255,0.08);
+      border-radius:12px; color:var(--text); font-family:'Inter',sans-serif;
+      outline:none; transition:border-color var(--transition);
+    }
+    .distance-input:focus { border-color:var(--primary); }
+    .unit-badge {
+      background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3);
+      padding:0.75rem 1.25rem; border-radius:10px;
+      color:var(--primary); font-weight:700; white-space:nowrap;
+    }
+
+    /* Cab selector */
+    .cab-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
+    @media (max-width:600px) { .cab-grid { grid-template-columns:repeat(2,1fr); } }
+    .cab-opt-input { display:none; }
+    .cab-opt-label {
+      display:flex; flex-direction:column; align-items:center;
+      padding:1.25rem 0.75rem;
+      background:var(--surface2); border:2px solid rgba(255,255,255,0.06);
+      border-radius:14px; cursor:pointer; text-align:center;
+      transition:all var(--transition);
+    }
+    .cab-opt-input:checked + .cab-opt-label {
+      border-color:var(--primary); background:rgba(108,99,255,0.1);
+      box-shadow:0 0 0 3px rgba(108,99,255,0.15);
+    }
+    .cab-opt-label:hover { border-color:rgba(108,99,255,0.4); }
+    .c-icon { font-size:2.5rem; }
+    .c-name { font-weight:700; font-size:0.95rem; margin-top:0.5rem; }
+    .c-price { font-size:0.78rem; color:var(--text-muted); margin-top:0.25rem; }
+
+    /* Calculate button */
+    .btn-calc {
+      width:100%; padding:1.1rem; font-size:1.1rem; font-weight:700;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff; border:none; border-radius:var(--radius); cursor:pointer;
+      box-shadow:0 4px 24px rgba(108,99,255,0.35); transition:all var(--transition);
+    }
+    .btn-calc:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(108,99,255,0.5); }
+    .btn-calc:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    /* Result */
+    .result-card {
+      background:linear-gradient(135deg,rgba(108,99,255,0.12),rgba(255,101,132,0.08));
+      border:1px solid rgba(108,99,255,0.3);
+      border-radius:var(--radius); padding:2.5rem;
+      text-align:center; margin-top:1.5rem;
+      display:none; animation:popIn 0.4s ease;
+    }
+    @keyframes popIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+    .result-icon { font-size:3.5rem; margin-bottom:1rem; }
+    .result-label { font-size:0.9rem; color:var(--text-muted); margin-bottom:0.5rem; }
+    .result-total { font-size:4rem; font-weight:800; color:var(--gold); line-height:1; }
+    .result-currency { font-size:1.5rem; vertical-align:super; margin-right:0.25rem; }
+    .breakdown { display:flex; justify-content:center; gap:2rem; margin-top:1.5rem; flex-wrap:wrap; }
+    .breakdown-item { text-align:center; }
+    .breakdown-value { font-size:1.2rem; font-weight:700; }
+    .breakdown-label { font-size:0.78rem; color:var(--text-muted); margin-top:0.2rem; }
+    .formula { margin-top:1.5rem; font-size:0.85rem; color:var(--text-muted); font-style:italic; }
+    .book-link {
+      display:inline-block; margin-top:1.5rem;
+      padding:0.8rem 2rem; border-radius:var(--radius);
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff; font-weight:700; text-decoration:none; font-size:0.95rem;
+      transition:all var(--transition);
+    }
+    .book-link:hover { transform:translateY(-2px); }
+
+    /* Rate table */
+    .rate-table-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; }
+    .rate-table-card h2 { font-size:1.2rem; font-weight:700; margin-bottom:1.5rem; }
+    table { width:100%; border-collapse:collapse; }
+    th { text-align:left; font-size:0.82rem; font-weight:600; color:var(--text-muted); padding:0.6rem 1rem; border-bottom:1px solid rgba(255,255,255,0.08); text-transform:uppercase; letter-spacing:0.05em; }
+    td { padding:0.9rem 1rem; font-size:0.9rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(108,99,255,0.05); }
+    .badge { padding:0.2rem 0.65rem; border-radius:999px; font-size:0.75rem; font-weight:600; }
+
+    #toast {
+      position:fixed; bottom:2rem; right:2rem;
+      padding:1rem 1.5rem; border-radius:var(--radius);
+      font-weight:600; font-size:0.95rem; z-index:999; display:none;
+    }
+    #toast.error { background:rgba(239,71,111,0.15); border:1px solid var(--error); color:var(--error); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">🚖 TravelEase</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="booking.html">Book a Cab</a></li>
+    <li><a href="passengers.html">Passengers</a></li>
+    <li><a href="fare-calculator.html" class="active">Fare Estimator</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>💰 Fare <span>Estimator</span></h1>
+    <p>Get an instant fare estimate before you book. Powered by the Fare Microservice on port 8082.</p>
+  </div>
+
+  <!-- ── Calculator ── -->
+  <div class="calc-card">
+    <div class="distance-group">
+      <label for="dist-input">Enter Distance</label>
+      <div class="distance-input-wrap">
+        <input type="number" id="dist-input" class="distance-input" placeholder="0.0" min="0.1" step="0.1" value="10" />
+        <div class="unit-badge">km</div>
+      </div>
+    </div>
+
+    <label style="font-size:0.9rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.75rem;">Select Cab Type</label>
+    <div class="cab-grid">
+      <input type="radio" name="calc-cab" id="c-mini" value="MINI" class="cab-opt-input" />
+      <label for="c-mini" class="cab-opt-label">
+        <span class="c-icon">🚗</span>
+        <span class="c-name">Mini</span>
+        <span class="c-price">₹30 + ₹8/km</span>
+      </label>
+
+      <input type="radio" name="calc-cab" id="c-sedan" value="SEDAN" class="cab-opt-input" checked />
+      <label for="c-sedan" class="cab-opt-label">
+        <span class="c-icon">🚙</span>
+        <span class="c-name">Sedan</span>
+        <span class="c-price">₹50 + ₹12/km</span>
+      </label>
+
+      <input type="radio" name="calc-cab" id="c-suv" value="SUV" class="cab-opt-input" />
+      <label for="c-suv" class="cab-opt-label">
+        <span class="c-icon">🚐</span>
+        <span class="c-name">SUV</span>
+        <span class="c-price">₹80 + ₹18/km</span>
+      </label>
+
+      <input type="radio" name="calc-cab" id="c-luxury" value="LUXURY" class="cab-opt-input" />
+      <label for="c-luxury" class="cab-opt-label">
+        <span class="c-icon">🏎️</span>
+        <span class="c-name">Luxury</span>
+        <span class="c-price">₹150 + ₹25/km</span>
+      </label>
+    </div>
+
+    <button id="calc-btn" class="btn-calc">⚡ Calculate Fare via Microservice</button>
+
+    <!-- Result -->
+    <div class="result-card" id="result-card">
+      <div class="result-icon" id="res-icon">🚙</div>
+      <div class="result-label">Estimated fare for <strong id="res-cab">SEDAN</strong></div>
+      <div class="result-total">
+        <span class="result-currency">₹</span>
+        <span id="res-total">0</span>
+      </div>
+      <div class="breakdown">
+        <div class="breakdown-item">
+          <div class="breakdown-value" id="res-dist">10 km</div>
+          <div class="breakdown-label">Distance</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-value" id="res-base">₹50</div>
+          <div class="breakdown-label">Base Fare</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-value" id="res-rate">₹12/km</div>
+          <div class="breakdown-label">Rate</div>
+        </div>
+      </div>
+      <div class="formula" id="res-formula"></div>
+      <a href="booking.html" class="book-link">Book This Cab →</a>
+    </div>
+  </div>
+
+  <!-- ── Rate Table ── -->
+  <div class="rate-table-card">
+    <h2>📊 Full Rate Card</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Cab Type</th>
+          <th>Base Fare</th>
+          <th>Per km Rate</th>
+          <th>Example (20 km)</th>
+          <th>Tag</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🚗 Mini</td>
+          <td>₹30</td>
+          <td>₹8/km</td>
+          <td>₹190</td>
+          <td><span class="badge" style="background:rgba(6,214,160,0.15);color:#06d6a0;">Best Value</span></td>
+        </tr>
+        <tr>
+          <td>🚙 Sedan</td>
+          <td>₹50</td>
+          <td>₹12/km</td>
+          <td>₹290</td>
+          <td><span class="badge" style="background:rgba(108,99,255,0.15);color:#6c63ff;">Popular</span></td>
+        </tr>
+        <tr>
+          <td>🚐 SUV</td>
+          <td>₹80</td>
+          <td>₹18/km</td>
+          <td>₹440</td>
+          <td><span class="badge" style="background:rgba(255,209,102,0.15);color:#ffd166;">Spacious</span></td>
+        </tr>
+        <tr>
+          <td>🏎️ Luxury</td>
+          <td>₹150</td>
+          <td>₹25/km</td>
+          <td>₹650</td>
+          <td><span class="badge" style="background:rgba(255,101,132,0.15);color:#ff6584;">Premium</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="margin-top:1rem;font-size:0.8rem;color:var(--text-muted);">
+      Formula: <strong>Total = Base Fare + (Distance × Per km Rate)</strong><br/>
+      Rate card loaded from Fare Microservice (port 8082) — <span id="rate-source">offline fallback</span>
+    </p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const FARE_API = 'http://localhost:8082/api/fare';
+  const CAB_ICONS = { MINI:'🚗', SEDAN:'🚙', SUV:'🚐', LUXURY:'🏎️' };
+
+  function showToast(msg, type='error') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = type;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  document.getElementById('calc-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('calc-btn');
+    const dist = parseFloat(document.getElementById('dist-input').value);
+    const cab  = document.querySelector('input[name="calc-cab"]:checked').value;
+
+    if (!dist || dist <= 0) {
+      showToast('Please enter a valid distance greater than 0.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Calculating…';
+
+    try {
+      const res = await fetch(`${FARE_API}/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ distanceKm: dist, cabType: cab }),
+      });
+
+      if (!res.ok) throw new Error('Service error');
+      const data = await res.json();
+
+      // Show result
+      document.getElementById('res-icon').textContent   = CAB_ICONS[cab] || '🚕';
+      document.getElementById('res-cab').textContent    = data.cabType;
+      document.getElementById('res-total').textContent  = data.totalFare.toFixed(2);
+      document.getElementById('res-dist').textContent   = data.distanceKm + ' km';
+      document.getElementById('res-base').textContent   = '₹' + data.baseFare;
+      document.getElementById('res-rate').textContent   = '₹' + data.perKmRate + '/km';
+      document.getElementById('res-formula').textContent =
+        `₹${data.baseFare} + (${data.distanceKm} km × ₹${data.perKmRate}/km) = ₹${data.totalFare}`;
+      document.getElementById('rate-source').textContent = 'live data from port 8082 ✅';
+
+      const resultCard = document.getElementById('result-card');
+      resultCard.style.display = 'block';
+
+    } catch {
+      // Fallback to local calculation
+      const RATES = { MINI:{base:30,perKm:8}, SEDAN:{base:50,perKm:12}, SUV:{base:80,perKm:18}, LUXURY:{base:150,perKm:25} };
+      const r = RATES[cab];
+      const total = (r.base + dist * r.perKm).toFixed(2);
+
+      document.getElementById('res-icon').textContent   = CAB_ICONS[cab];
+      document.getElementById('res-cab').textContent    = cab + ' (offline estimate)';
+      document.getElementById('res-total').textContent  = total;
+      document.getElementById('res-dist').textContent   = dist + ' km';
+      document.getElementById('res-base').textContent   = '₹' + r.base;
+      document.getElementById('res-rate').textContent   = '₹' + r.perKm + '/km';
+      document.getElementById('res-formula').textContent =
+        `₹${r.base} + (${dist} km × ₹${r.perKm}/km) = ₹${total} (offline – Fare Service not running)`;
+      document.getElementById('rate-source').textContent = 'offline fallback (port 8082 unavailable)';
+
+      document.getElementById('result-card').style.display = 'block';
+      showToast('⚠️ Fare Service offline. Showing local estimate.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ Calculate Fare via Microservice';
+    }
+  });
+
+  // Try to load rate card from API on page load
+  (async () => {
+    try {
+      await fetch(`${FARE_API}/rates`);
+      document.getElementById('rate-source').textContent = 'live data from port 8082 ✅';
+    } catch { /* stays as offline fallback */ }
+  })();
+</script>
+</body>
+</html>

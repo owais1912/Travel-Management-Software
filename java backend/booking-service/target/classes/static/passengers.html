@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Passengers – TravelEase</title>
+  <meta name="description" content="Manage passenger profiles for TravelEase cab booking service." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #574fd6;
+      --accent: #ff6584;
+      --success: #06d6a0;
+      --error: #ef476f;
+      --bg: #0f0e17;
+      --surface: #1a1927;
+      --surface2: #22213a;
+      --border: rgba(108,99,255,0.2);
+      --text: #fffffe;
+      --text-muted: #a7a5c2;
+      --radius: 16px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 2.5rem;
+      background:rgba(15,14,23,0.85); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-brand { font-size:1.4rem; font-weight:800; background:linear-gradient(90deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-decoration:none; }
+    .nav-links { display:flex; gap:1.5rem; list-style:none; }
+    .nav-links a { color:var(--text-muted); text-decoration:none; font-weight:500; font-size:0.95rem; transition:color var(--transition); }
+    .nav-links a:hover, .nav-links a.active { color:var(--primary); }
+
+    .page-wrapper { max-width:1100px; margin:0 auto; padding:7rem 2rem 4rem; }
+    .page-header { margin-bottom:2.5rem; }
+    .page-header h1 { font-size:2.2rem; font-weight:800; }
+    .page-header p { color:var(--text-muted); margin-top:0.5rem; }
+    .breadcrumb { font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem; }
+    .breadcrumb a { color:var(--primary); text-decoration:none; }
+
+    .content-grid { display:grid; grid-template-columns:380px 1fr; gap:2rem; align-items:start; }
+    @media (max-width:800px) { .content-grid { grid-template-columns:1fr; } }
+
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:2rem; }
+    .card-title { font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem; }
+
+    .form-group { margin-bottom:1.2rem; }
+    .form-group label { display:block; font-size:0.875rem; font-weight:500; color:var(--text-muted); margin-bottom:0.5rem; }
+    .form-group label span { color:var(--error); }
+    .form-control {
+      width:100%; padding:0.75rem 1rem;
+      background:var(--surface2); border:1.5px solid rgba(255,255,255,0.08);
+      border-radius:10px; color:var(--text); font-family:'Inter',sans-serif; font-size:0.95rem;
+      outline:none; transition:border-color var(--transition), box-shadow var(--transition);
+    }
+    .form-control:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(108,99,255,0.15); }
+
+    .btn-submit {
+      width:100%; padding:1rem;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff; font-size:1rem; font-weight:700; border:none; border-radius:var(--radius);
+      cursor:pointer; margin-top:0.5rem;
+      box-shadow:0 4px 24px rgba(108,99,255,0.35); transition:all var(--transition);
+    }
+    .btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(108,99,255,0.5); }
+    .btn-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+    /* Passenger cards */
+    .passengers-grid { display:grid; gap:1rem; }
+    .passenger-card {
+      display:flex; align-items:center; gap:1rem; padding:1.25rem;
+      background:var(--surface2); border:1px solid rgba(255,255,255,0.06);
+      border-radius:12px; transition:all var(--transition);
+    }
+    .passenger-card:hover { border-color:var(--primary); }
+    .avatar {
+      width:48px; height:48px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.3rem; font-weight:700; flex-shrink:0;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+    }
+    .p-info { flex:1; }
+    .p-name { font-weight:700; font-size:0.95rem; }
+    .p-email { font-size:0.8rem; color:var(--text-muted); margin-top:0.15rem; }
+    .p-phone { font-size:0.8rem; color:var(--text-muted); }
+    .p-id-badge {
+      padding:0.2rem 0.6rem; border-radius:999px;
+      font-size:0.72rem; font-weight:600;
+      background:rgba(108,99,255,0.15); color:var(--primary);
+      flex-shrink:0;
+    }
+    .delete-btn { background:none; border:none; cursor:pointer; color:var(--error); font-size:1.2rem; padding:0.25rem; transition:transform var(--transition); }
+    .delete-btn:hover { transform:scale(1.2); }
+    .empty-state { text-align:center; color:var(--text-muted); padding:2rem; font-size:0.9rem; }
+
+    #toast {
+      position:fixed; bottom:2rem; right:2rem;
+      padding:1rem 1.5rem; border-radius:var(--radius);
+      font-weight:600; font-size:0.95rem; z-index:999; display:none;
+    }
+    #toast.success { background:rgba(6,214,160,0.15); border:1px solid var(--success); color:var(--success); }
+    #toast.error   { background:rgba(239,71,111,0.15); border:1px solid var(--error);   color:var(--error);   }
+
+    .search-bar {
+      display:flex; align-items:center; gap:0.75rem;
+      background:var(--surface2); border:1.5px solid rgba(255,255,255,0.08);
+      border-radius:10px; padding:0.6rem 1rem; margin-bottom:1.25rem;
+    }
+    .search-bar input {
+      background:none; border:none; color:var(--text); font-family:'Inter',sans-serif;
+      font-size:0.95rem; outline:none; flex:1;
+    }
+    .search-bar input::placeholder { color:var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">🚖 TravelEase</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="booking.html">Book a Cab</a></li>
+    <li><a href="passengers.html" class="active">Passengers</a></li>
+    <li><a href="fare-calculator.html">Fare Estimator</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="index.html">Home</a> › Passengers</div>
+    <h1>👥 Passenger Profiles</h1>
+    <p>Create and manage passenger profiles for the travel company.</p>
+  </div>
+
+  <div class="content-grid">
+    <!-- ── Form ── -->
+    <div>
+      <div class="card" style="position:sticky;top:6rem;">
+        <div class="card-title">➕ Add New Passenger</div>
+        <form id="passenger-form">
+          <div class="form-group">
+            <label for="p-name">Full Name <span>*</span></label>
+            <input type="text" id="p-name" class="form-control" placeholder="e.g. John Doe" required />
+          </div>
+          <div class="form-group">
+            <label for="p-email">Email Address <span>*</span></label>
+            <input type="email" id="p-email" class="form-control" placeholder="e.g. john@email.com" required />
+          </div>
+          <div class="form-group">
+            <label for="p-phone">Phone Number <span>*</span></label>
+            <input type="tel" id="p-phone" class="form-control" placeholder="10-digit mobile number" maxlength="10" pattern="[6-9][0-9]{9}" required />
+          </div>
+          <div class="form-group">
+            <label for="p-address">Address</label>
+            <input type="text" id="p-address" class="form-control" placeholder="e.g. 123 MG Road, Bangalore" />
+          </div>
+          <button type="submit" class="btn-submit" id="submit-passenger">✅ Save Passenger</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Passengers List ── -->
+    <div>
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between;">
+          <span>📋 All Passengers</span>
+          <button id="refresh-btn" style="background:none;border:none;color:var(--primary);cursor:pointer;font-size:0.85rem;font-weight:600;">↻ Refresh</button>
+        </div>
+        <div class="search-bar">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="Search by name or email…" />
+        </div>
+        <div class="passengers-grid" id="passengers-grid">
+          <div class="empty-state">Loading passengers…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const PASSENGER_API = 'http://localhost:8081/api/passengers';
+  let allPassengers = [];
+
+  function getInitials(name) {
+    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  }
+
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = type;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+
+  function renderPassengers(list) {
+    const grid = document.getElementById('passengers-grid');
+    if (!list.length) {
+      grid.innerHTML = '<div class="empty-state">No passengers found. Add your first passenger!</div>';
+      return;
+    }
+    grid.innerHTML = list.map(p => `
+      <div class="passenger-card" id="p-card-${p.id}">
+        <div class="avatar">${getInitials(p.name)}</div>
+        <div class="p-info">
+          <div class="p-name">${p.name}</div>
+          <div class="p-email">✉️ ${p.email}</div>
+          <div class="p-phone">📞 ${p.phone}${p.address ? ' · 📍 ' + p.address : ''}</div>
+        </div>
+        <span class="p-id-badge">ID #${p.id}</span>
+        <button class="delete-btn" onclick="deletePassenger(${p.id})" title="Delete passenger">🗑️</button>
+      </div>
+    `).join('');
+  }
+
+  async function loadPassengers() {
+    try {
+      const res = await fetch(PASSENGER_API);
+      allPassengers = await res.json();
+      renderPassengers(allPassengers);
+    } catch {
+      document.getElementById('passengers-grid').innerHTML =
+        '<div class="empty-state">⚠️ Could not connect to Booking Service (port 8081). Make sure it is running.</div>';
+    }
+  }
+
+  async function deletePassenger(id) {
+    try {
+      const res = await fetch(`${PASSENGER_API}/${id}`, { method: 'DELETE' });
+      if (res.status === 204) {
+        showToast('Passenger #' + id + ' deleted.', 'success');
+        loadPassengers();
+      } else {
+        showToast('Failed to delete passenger.', 'error');
+      }
+    } catch {
+      showToast('Could not reach Booking Service.', 'error');
+    }
+  }
+
+  document.getElementById('passenger-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-passenger');
+    btn.disabled = true;
+
+    const payload = {
+      name: document.getElementById('p-name').value,
+      email: document.getElementById('p-email').value,
+      phone: document.getElementById('p-phone').value,
+      address: document.getElementById('p-address').value,
+    };
+
+    try {
+      const res = await fetch(PASSENGER_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 201) {
+        showToast('✅ Passenger added successfully!', 'success');
+        e.target.reset();
+        loadPassengers();
+      } else {
+        showToast('❌ Failed to add passenger.', 'error');
+      }
+    } catch {
+      showToast('⚠️ Cannot reach Booking Service. Is it running on port 8081?', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Search filter
+  document.getElementById('search-input').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    const filtered = allPassengers.filter(p =>
+      p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)
+    );
+    renderPassengers(filtered);
+  });
+
+  document.getElementById('refresh-btn').addEventListener('click', loadPassengers);
+  loadPassengers();
+</script>
+</body>
+</html>
